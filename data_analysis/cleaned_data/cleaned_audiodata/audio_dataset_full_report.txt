@@ -1,0 +1,37 @@
+AUDIO DATASET FULL ANALYSIS REPORT
+==================================================
+
+Software Engineering View:
+This is a project-specific reporting script.
+Good for:
+- One project
+- One folder layout
+- One-time report
+
+Input Folder: data_analysis\datasets\audiofiles\CAT_AUDIO_Dataset
+
+Overall Dataset Statistics:
+Total Audio Files: 40
+Total Dataset Size: 2.08 MB
+
+Audio Format Distribution:
+MP3 Files: 40
+WAV Files: 0
+Other Audio Files: 0
+
+Class Distribution Analysis:
+Number of Classes: 4
+Classes:
+- Angry: 10 files
+- Happy: 10 files
+- fearful: 10 files
+- sad: 10 files
+
+Why this matters:
+Files per class is useful for:
+- Class imbalance analysis
+- Dataset bias checking
+
+Conclusion:
+This script provides a complete project-level audit of the audio dataset,
+including size, formats, and class distribution for ML readiness.

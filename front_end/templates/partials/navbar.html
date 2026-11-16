@@ -1,0 +1,49 @@
+<nav class="navbar glass-card" style="margin: 1rem auto; max-width: 1200px; padding: 0.75rem 1.5rem; display: flex; align-items: center; justify-content: space-between; border-radius: var(--radius-md); position: sticky; top: 1rem; z-index: 1000;">
+  <div style="display: flex; align-items: center; gap: 0.75rem;">
+    <a href="{{ url_for('dashboard' if current_user.is_authenticated else 'landing') }}" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; color: var(--text-primary); font-weight: 700; font-size: 1.25rem;">
+      <span style="font-size: 1.5rem;">🐾</span>
+      <span>CatSense<span style="color: var(--accent-primary);">AI</span></span>
+    </a>
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 1.25rem;">
+    {% if current_user.is_authenticated %}
+      <a href="{{ url_for('dashboard') }}" class="nav-link {{ 'active' if request.endpoint == 'dashboard' else '' }}" style="color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color var(--transition-fast);">Dashboard</a>
+      <a href="{{ url_for('new_analysis') }}" class="nav-link {{ 'active' if request.endpoint == 'new_analysis' else '' }}" style="color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color var(--transition-fast);">New Analysis</a>
+      <a href="{{ url_for('history') }}" class="nav-link {{ 'active' if request.endpoint == 'history' else '' }}" style="color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color var(--transition-fast);">History</a>
+      <a href="{{ url_for('metrics') }}" class="nav-link {{ 'active' if request.endpoint == 'metrics' else '' }}" style="color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color var(--transition-fast);">Metrics</a>
+      <a href="{{ url_for('profile') }}" class="nav-link {{ 'active' if request.endpoint == 'profile' else '' }}" style="color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color var(--transition-fast);">Profile</a>
+      <a href="{{ url_for('logout') }}" class="btn btn-ghost" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Logout</a>
+    {% else %}
+      <a href="{{ url_for('landing') }}" class="nav-link {{ 'active' if request.endpoint in ('landing', 'home') else '' }}" style="color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; font-weight: 500;">Home</a>
+      <a href="{{ url_for('demo') }}" class="nav-link {{ 'active' if request.endpoint == 'demo' else '' }}" style="color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; font-weight: 500;">Try Demo</a>
+      <a href="{{ url_for('login') }}" class="btn btn-ghost" style="padding: 0.45rem 1rem; font-size: 0.875rem;">Login</a>
+      <a href="{{ url_for('register') }}" class="btn btn-primary" style="padding: 0.45rem 1.1rem; font-size: 0.875rem;">Get Started</a>
+    {% endif %}
+
+    {% if not lock_dark %}
+    <!-- Theme Toggle -->
+    <button type="button" class="theme-toggle-btn" title="Toggle color theme" aria-label="Toggle color theme">
+      <!-- Sun icon (shown in dark mode) -->
+      <svg class="icon-sun" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: block;">
+        <circle cx="12" cy="12" r="4" stroke-width="2"/>
+        <path stroke-linecap="round" stroke-width="2" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+      </svg>
+      <!-- Moon icon (shown in light mode) -->
+      <svg class="icon-moon" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+      </svg>
+    </button>
+    {% endif %}
+  </div>
+</nav>
+
+<style>
+.nav-link:hover {
+  color: var(--accent-primary) !important;
+}
+.nav-link.active {
+  color: var(--accent-primary) !important;
+  font-weight: 600 !important;
+}
+</style>

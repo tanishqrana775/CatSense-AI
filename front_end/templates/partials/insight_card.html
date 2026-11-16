@@ -1,0 +1,61 @@
+{# Jinja Partial: Biological Insight Card #}
+{% if insight %}
+<div class="insight-card glass-card {{ insight.css_class }}" id="biologicalInsightCard">
+  <div class="insight-header">
+    <div class="insight-title-group">
+      <span class="insight-icon">
+        {% if insight.emotion == 'Angry' %}😾
+        {% elif insight.emotion == 'Fearful' %}🙀
+        {% elif insight.emotion == 'Happy' %}😸
+        {% elif insight.emotion == 'Sad' %}😿
+        {% else %}🐾{% endif %}
+      </span>
+      <div>
+        <h4 class="insight-heading">Feline Biological Insight: {{ insight.emotion }}</h4>
+        <span class="insight-subheading">Behavioral & Physiological Pattern Synthesis</span>
+      </div>
+    </div>
+    <div class="insight-badges">
+      <span class="badge {{ insight.badge_class }}">{{ insight.badge_label }}</span>
+      <span class="badge badge-neutral">{{ "%.1f"|format(insight.confidence_pct) }}% Confidence</span>
+    </div>
+  </div>
+
+  {% if insight.conflict_note %}
+  <div class="insight-conflict-banner">
+    <div class="conflict-icon">⚠️</div>
+    <div class="conflict-text">
+      <strong>Observation Notice:</strong> {{ insight.conflict_note }}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="insight-body">
+    <div class="insight-section">
+      <h5 class="insight-section-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+        Ethological Context
+      </h5>
+      <p class="insight-description">{{ insight.biology }}</p>
+    </div>
+
+    <div class="insight-section">
+      <h5 class="insight-section-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Care & Environmental Recommendations
+      </h5>
+      <ul class="insight-tips-list">
+        {% for tip in insight.tips %}
+        <li class="insight-tip-item">{{ tip }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <div class="insight-footer">
+    <p class="insight-disclaimer">
+      <small>ℹ️ {{ insight.disclaimer }}</small>
+    </p>
+  </div>
+</div>
+{% endif %}

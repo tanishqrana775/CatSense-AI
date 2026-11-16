@@ -1,0 +1,275 @@
+{% set lock_dark = true %}
+{% extends "base.html" %}
+
+{% block description %}
+CatSense AI — Feline Emotion Recognition using multimodal deep learning neural networks.
+{% endblock %}
+
+{% block title %}CatSense AI | Feline Emotion Recognition{% endblock %}
+{% block page_id %}landing{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Vanta / Background container */
+#vanta-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -2;
+    background: radial-gradient(circle at 50% 30%, #111827 0%, #0B0F17 100%);
+}
+
+.hero-wrapper {
+    position: relative;
+    padding: 4rem 1.5rem 3rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.stats-grid-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    margin: 3.5rem auto;
+    max-width: 1100px;
+}
+
+.stat-card {
+    padding: 1.75rem 1.25rem;
+    text-align: center;
+}
+
+.stat-val {
+    font-size: 2.25rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent-primary) 0%, #10B981 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1.2;
+    margin-bottom: 0.35rem;
+}
+
+.stat-desc {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+    margin-top: 2.5rem;
+}
+
+@media (max-width: 900px) {
+    .hero-grid {
+        grid-template-columns: 1fr !important;
+        text-align: center;
+    }
+    .stats-grid-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 540px) {
+    .stats-grid-container {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<!-- Interactive 3D Background Canvas -->
+<div id="vanta-bg"></div>
+
+<!-- Top Navigation -->
+{% include "partials/navbar.html" %}
+
+<!-- Hero Section -->
+<section class="hero-wrapper">
+  <div class="hero-grid" style="display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 3.5rem; align-items: center;">
+    <div>
+      <div style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.9rem; border-radius: var(--radius-full); background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.3); margin-bottom: 1.5rem;">
+        <span style="font-size: 0.875rem;">🔬</span>
+        <span style="font-size: 0.8rem; font-weight: 600; color: #A5B4FC; text-transform: uppercase; letter-spacing: 0.05em;">Multimodal Deep Learning</span>
+      </div>
+
+      <h1 style="font-size: 3.25rem; font-weight: 800; line-height: 1.15; color: #FFFFFF; margin-bottom: 1.25rem;">
+        Feline Emotion<br>
+        <span style="background: linear-gradient(135deg, #818CF8 0%, #34D399 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Recognition</span>
+      </h1>
+
+      <p style="font-size: 1.125rem; line-height: 1.65; color: var(--text-secondary); margin-bottom: 2rem; max-width: 560px;">
+        Decode your cat's behavioral states with precision. CatSense AI combines facial vision (EfficientNetV2) and vocal acoustics (Log-Mel Spectrogram 2D-CNN) using Bayesian opinion pooling to provide ethologically grounded biological insights.
+      </p>
+
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <a href="{{ url_for('register') }}" class="btn btn-primary" style="padding: 0.85rem 1.85rem; font-size: 1.05rem;">
+          Get Started Free
+        </a>
+        <a href="{{ url_for('demo') }}" class="btn btn-secondary" style="padding: 0.85rem 1.75rem; font-size: 1.05rem;">
+          Try Interactive Demo
+        </a>
+      </div>
+    </div>
+
+    <div style="position: relative;">
+      <div class="glass-card" style="padding: 1.25rem; overflow: hidden; border-radius: var(--radius-lg); box-shadow: 0 25px 60px rgba(0,0,0,0.5);">
+        <img 
+          src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600&h=450&fit=crop&auto=format" 
+          alt="Cat Emotion Neural Analysis" 
+          style="width: 100%; height: auto; border-radius: var(--radius-md); display: block;"
+        >
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; padding: 0.25rem 0.5rem;">
+          <div>
+            <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">Neural Architecture</span>
+            <div style="font-size: 0.95rem; font-weight: 600; color: #FFFFFF;">EfficientNetV2-B0 + 2D-CNN</div>
+          </div>
+          <span class="badge badge-success">Calibrated Fusion</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Real Factual Stats Bar (Zero Hallucinated Numbers) -->
+  <div class="stats-grid-container">
+    <div class="glass-card stat-card">
+      <div class="stat-val">4</div>
+      <div class="stat-desc">Canonical Emotions</div>
+      <small style="color: var(--text-muted); font-size: 0.75rem;">Angry, Fearful, Happy, Sad</small>
+    </div>
+    <div class="glass-card stat-card">
+      <div class="stat-val">2</div>
+      <div class="stat-desc">Synchronized Modalities</div>
+      <small style="color: var(--text-muted); font-size: 0.75rem;">Facial & Vocal Acoustic</small>
+    </div>
+    <div class="glass-card stat-card">
+      <div class="stat-val">Log-Linear</div>
+      <div class="stat-desc">Bayesian Opinion Pooling</div>
+      <small style="color: var(--text-muted); font-size: 0.75rem;">Temperature-Calibrated</small>
+    </div>
+    <div class="glass-card stat-card">
+      <div class="stat-val">Ethological</div>
+      <div class="stat-desc">Biological Insights</div>
+      <small style="color: var(--text-muted); font-size: 0.75rem;">Grounded Feline Biology</small>
+    </div>
+  </div>
+</section>
+
+<!-- System Features Section -->
+<section id="features" style="padding: 4rem 1.5rem; max-width: 1200px; margin: 0 auto;">
+  <div style="text-align: center; margin-bottom: 3rem;">
+    <h2 style="font-size: 2.25rem; font-weight: 800; color: #FFFFFF; margin-bottom: 0.75rem;">
+      Engineered for Scientific Accuracy
+    </h2>
+    <p style="font-size: 1rem; color: var(--text-secondary); max-width: 650px; margin: 0 auto;">
+      Every prediction is calibrated using empirical temperature scaling to prevent overconfident misclassifications.
+    </p>
+  </div>
+
+  <div class="features-grid">
+    <div class="glass-card" style="padding: 2rem;">
+      <div style="font-size: 2.5rem; margin-bottom: 1rem;">📷</div>
+      <h3 style="font-size: 1.25rem; font-weight: 700; color: #FFFFFF; margin-bottom: 0.5rem;">Facial Expression Vision</h3>
+      <p style="font-size: 0.925rem; line-height: 1.6; color: var(--text-secondary); margin: 0;">
+        EfficientNetV2-B0 backbone fine-tuned on standardized 224x224 feline imagery to detect subtle facial and orbital patterns.
+      </p>
+    </div>
+
+    <div class="glass-card" style="padding: 2rem;">
+      <div style="font-size: 2.5rem; margin-bottom: 1rem;">🎙️</div>
+      <h3 style="font-size: 1.25rem; font-weight: 700; color: #FFFFFF; margin-bottom: 0.5rem;">Vocal Acoustic Spectrograms</h3>
+      <p style="font-size: 0.925rem; line-height: 1.6; color: var(--text-secondary); margin: 0;">
+        Separable 2D-CNN architecture processing 130x64 standardized Log-Mel Spectrograms to capture frequency harmonics and pitch shifts.
+      </p>
+    </div>
+
+    <div class="glass-card" style="padding: 2rem;">
+      <div style="font-size: 2.5rem; margin-bottom: 1rem;">⚖️</div>
+      <h3 style="font-size: 1.25rem; font-weight: 700; color: #FFFFFF; margin-bottom: 0.5rem;">Bayesian Fusion & Calibration</h3>
+      <p style="font-size: 0.925rem; line-height: 1.6; color: var(--text-secondary); margin: 0;">
+        Combines independent modality probability distributions with empirical temperature parameters and entropy weighting.
+      </p>
+    </div>
+
+    <div class="glass-card" style="padding: 2rem;">
+      <div style="font-size: 2.5rem; margin-bottom: 1rem;">🐾</div>
+      <h3 style="font-size: 1.25rem; font-weight: 700; color: #FFFFFF; margin-bottom: 0.5rem;">Biological Insight Engine</h3>
+      <p style="font-size: 0.925rem; line-height: 1.6; color: var(--text-secondary); margin: 0;">
+        Generates feline behavioral explanations and environment recommendations while actively warning against anthropomorphic bias.
+      </p>
+    </div>
+
+    <div class="glass-card" style="padding: 2rem;">
+      <div style="font-size: 2.5rem; margin-bottom: 1rem;">🔒</div>
+      <h3 style="font-size: 1.25rem; font-weight: 700; color: #FFFFFF; margin-bottom: 0.5rem;">Transparent Data Privacy</h3>
+      <p style="font-size: 0.925rem; line-height: 1.6; color: var(--text-secondary); margin: 0;">
+        Uploads are processed in-memory. Only a compact 400px JPEG thumbnail and prediction scores are retained in your personal history.
+      </p>
+    </div>
+
+    <div class="glass-card" style="padding: 2rem;">
+      <div style="font-size: 2.5rem; margin-bottom: 1rem;">📊</div>
+      <h3 style="font-size: 1.25rem; font-weight: 700; color: #FFFFFF; margin-bottom: 0.5rem;">Interactive Longitudinal Analytics</h3>
+      <p style="font-size: 0.925rem; line-height: 1.6; color: var(--text-secondary); margin: 0;">
+        Explore emotion trends, confidence timelines, and class distributions with Chart.js-powered visual dashboards.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer style="border-top: 1px solid var(--border-subtle); padding: 3rem 1.5rem; margin-top: 4rem; text-align: center;">
+  <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem;">
+    <div style="display: flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 1.1rem; color: #FFFFFF;">
+      <span>🐾</span> CatSense AI
+    </div>
+    <div style="display: flex; gap: 1.5rem; font-size: 0.9rem;">
+      <a href="{{ url_for('demo') }}" style="color: var(--text-secondary); text-decoration: none;">Try Demo</a>
+      <a href="{{ url_for('login') }}" style="color: var(--text-secondary); text-decoration: none;">Login</a>
+      <a href="{{ url_for('register') }}" style="color: var(--text-secondary); text-decoration: none;">Register</a>
+    </div>
+    <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">
+      © 2026 CatSense AI — Multimodal Feline Emotion Recognition
+    </p>
+  </div>
+</footer>
+
+<!-- Optional Vanta NET Background Animation with Fallback -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
+<script>
+  (function() {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
+    try {
+      if (typeof VANTA !== 'undefined' && VANTA.NET) {
+        VANTA.NET({
+          el: "#vanta-bg",
+          mouseControls: false,
+          touchControls: false,
+          gyroControls: false,
+          minHeight: 200.00,
+          minWidth: 200.00,
+          scale: 1.00,
+          scaleMobile: 0.50,
+          color: 0x6366f1,
+          backgroundColor: 0x0b0f17,
+          points: 8.00,
+          maxDistance: 22.00,
+          spacing: 18.00
+        });
+      }
+    } catch (e) {
+      console.warn("Vanta initialization skipped, falling back to CSS background.");
+    }
+  })();
+</script>
+{% endblock %}

@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block description %}Review your cat emotion analysis history, calibrated confidence levels, and media thumbnails.{% endblock %}
+{% block title %}Analysis History | CatSense AI{% endblock %}
+{% block page_id %}history{% endblock %}
+
+{% block extra_css %}
+<style>
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.925rem;
+}
+
+.history-table th {
+    text-align: left;
+    padding: 1rem 1.25rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.history-table td {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border-subtle);
+    vertical-align: middle;
+}
+
+.history-table tr:hover td {
+    background: var(--bg-glass-elevated);
+}
+
+.filter-input {
+    background: var(--bg-input);
+    color: var(--text-primary);
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-sm);
+    padding: 0.55rem 0.9rem;
+    font-size: 0.875rem;
+    outline: none;
+    transition: border-color var(--transition-fast);
+}
+
+.filter-input:focus {
+    border-color: var(--accent-primary);
+}
+
+.thumb-small {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-sm);
+    object-fit: cover;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-glass);
+    display: block;
+}
+</style>
+{% endblock %}
+
+{% block body %}
+{% include "partials/navbar.html" %}
+
+<main class="history-wrapper" style="max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem 3rem;">
+  <!-- Header Title -->
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+    <div>
+      <h1 style="font-size: 2.25rem; font-weight: 800; color: var(--text-primary); margin: 0 0 0.35rem;">
+        Analysis History
+      </h1>
+      <p style="font-size: 0.95rem; color: var(--text-secondary); margin: 0;">
+        Showing {{ total_count }} total recorded feline analyses.
+      </p>
+    </div>
+    <a href="{{ url_for('new_analysis') }}" class="btn btn-primary">
+      🚀 New Scan
+    </a>
+  </div>
+
+  <!-- Filters & Search Toolbar -->
+  <div class="glass-card" style="padding: 1.25rem 1.5rem; margin-bottom: 1.5rem;">
+    <form method="GET" action="{{ url_for('history') }}" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+      <!-- Modality Filter -->
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <label for="filterType" style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">Type:</label>
+        <select name="type" id="filterType" class="filter-input" onchange="this.form.submit()">
+          <option value="all" {% if selected_type == 'all' %}selected{% endif %}>All Modalities</option>
+          <option value="image" {% if selected_type in ('image', 'facial') %}selected{% endif %}>Image (Facial)</option>
+          <option value="audio" {% if selected_type in ('audio', 'vocal') %}selected{% endif %}>Audio (Vocal)</option>
+          <option value="both" {% if selected_type in ('both', 'combined') %}selected{% endif %}>Multimodal Both</option>
+        </select>
+      </div>
+
+      <!-- Emotion Filter -->
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <label for="filterEmotion" style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">Emotion:</label>
+        <select name="emotion" id="filterEmotion" class="filter-input" onchange="this.form.submit()">
+          <option value="all" {% if selected_emotion == 'all' %}selected{% endif %}>All Emotions</option>
+          {% for cls in canonical_classes %}
+          <option value="{{ cls }}" {% if selected_emotion == cls %}selected{% endif %}>{{ cls }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Search Input -->
+      <div style="flex: 1; min-width: 200px; display: flex; gap: 0.5rem;">
+        <input 
+          type="text" 
+          name="q" 
+          placeholder="Search filename or state..." 
+          value="{{ search_query }}"
+          class="filter-input"
+          style="width: 100%;"
+        >
+        <button type="submit" class="btn btn-secondary" style="padding: 0.55rem 1rem; font-size: 0.85rem;">
+          Filter
+        </button>
+      </div>
+
+      {% if selected_type != 'all' or selected_emotion != 'all' or search_query %}
+      <a href="{{ url_for('history') }}" class="btn btn-ghost" style="font-size: 0.85rem; padding: 0.55rem 0.8rem;">
+        Reset Filters
+      </a>
+      {% endif %}
+    </form>
+  </div>
+
+  <!-- Table Container -->
+  <div class="glass-card" style="overflow: hidden;">
+    {% if predictions %}
+    <div style="overflow-x: auto;">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th style="width: 60px;">Media</th>
+            <th>Emotion</th>
+            <th>Calibrated Conf</th>
+            <th>Modality</th>
+            <th>Filename</th>
+            <th>Date & Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for pred in predictions %}
+          <tr>
+            <td>
+              {% if pred.thumb_bytes %}
+                <img src="{{ url_for('scan_thumb', scan_id=pred.id) }}" alt="Thumb" class="thumb-small" loading="lazy">
+              {% else %}
+                <div class="thumb-small" style="display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                  🎙️
+                </div>
+              {% endif %}
+            </td>
+            <td>
+              <span style="font-size: 1.1rem; margin-right: 0.35rem;">
+                {% if pred.prediction_result == 'Angry' %}😾
+                {% elif pred.prediction_result == 'Fearful' %}🙀
+                {% elif pred.prediction_result == 'Happy' %}😸
+                {% elif pred.prediction_result == 'Sad' %}😿
+                {% else %}🐾{% endif %}
+              </span>
+              <strong style="color: var(--text-primary);">{{ pred.prediction_result }}</strong>
+            </td>
+            <td>
+              <span class="badge {% if pred.prediction_result == 'Happy' %}badge-success{% elif pred.prediction_result == 'Fearful' %}badge-warning{% elif pred.prediction_result == 'Angry' %}badge-danger{% else %}badge-info{% endif %}">
+                {{ pred.display_confidence }}%
+              </span>
+            </td>
+            <td>
+              <span style="text-transform: capitalize; color: var(--text-secondary); font-size: 0.85rem; font-weight: 500;">
+                {{ pred.modality or pred.file_type }}
+              </span>
+            </td>
+            <td>
+              <span style="color: var(--text-secondary); font-size: 0.85rem; word-break: break-all;">
+                {{ pred.filename }}
+              </span>
+            </td>
+            <td>
+              <div style="color: var(--text-primary); font-size: 0.875rem; font-weight: 500;">
+                {{ pred.timestamp.strftime('%b %d, %Y') }}
+              </div>
+              <small style="color: var(--text-muted); font-size: 0.775rem;">
+                {{ pred.timestamp.strftime('%H:%M UTC') }}
+              </small>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Footer -->
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-top: 1px solid var(--border-subtle); flex-wrap: wrap; gap: 1rem;">
+      <span style="font-size: 0.875rem; color: var(--text-secondary);">
+        Page {{ current_page }} of {{ total_pages }} ({{ total_count }} total entries)
+      </span>
+      <div style="display: flex; gap: 0.5rem;">
+        {% if current_page > 1 %}
+        <a href="{{ url_for('history', page=current_page - 1, type=selected_type, emotion=selected_emotion, q=search_query) }}" class="btn btn-secondary" style="padding: 0.45rem 1rem; font-size: 0.85rem;">
+          ← Previous
+        </a>
+        {% endif %}
+        {% if current_page < total_pages %}
+        <a href="{{ url_for('history', page=current_page + 1, type=selected_type, emotion=selected_emotion, q=search_query) }}" class="btn btn-secondary" style="padding: 0.45rem 1rem; font-size: 0.85rem;">
+          Next →
+        </a>
+        {% endif %}
+      </div>
+    </div>
+
+    {% else %}
+    <div style="text-align: center; padding: 4rem 1.5rem;">
+      <div style="font-size: 3rem; margin-bottom: 0.75rem; opacity: 0.6;">🔍</div>
+      <h3 style="font-size: 1.2rem; color: var(--text-primary); margin-bottom: 0.35rem;">No Predictions Found</h3>
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+        {% if selected_type != 'all' or selected_emotion != 'all' or search_query %}
+          No records match your active search filters. Try clearing your filters.
+        {% else %}
+          You haven't uploaded any cat media yet. Start your first analysis!
+        {% endif %}
+      </p>
+      {% if selected_type != 'all' or selected_emotion != 'all' or search_query %}
+        <a href="{{ url_for('history') }}" class="btn btn-secondary">Clear Filters</a>
+      {% else %}
+        <a href="{{ url_for('new_analysis') }}" class="btn btn-primary">Run First Scan</a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</main>
+{% endblock %}

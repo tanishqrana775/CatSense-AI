@@ -1,0 +1,504 @@
+================================================================================
+                    MEOWMIND AI - CODE DOCUMENTATION
+                    Premium Cat-Themed Design System
+================================================================================
+
+This document explains the code structure and how to edit different parts
+of the MeowMind AI application. Perfect for developers who want to customize
+colors, layouts, or functionality.
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+1. Project Structure Overview
+2. CSS Architecture & Color System
+3. HTML Template Structure
+4. JavaScript Functionality
+5. How to Edit Colors
+6. How to Edit Layouts
+7. How to Add New Features
+8. Database Structure
+9. Backend AI Integration
+10. Common Customization Tasks
+
+================================================================================
+1. PROJECT STRUCTURE OVERVIEW
+================================================================================
+
+MeowMind AI/
+├── front_end/
+│   ├── static/
+│   │   ├── styles/
+│   │   │   └── main.css          # All styling (27 sections)
+│   │   └── scripts/
+│   │       └── main.js            # JavaScript functionality
+│   ├── templates/
+│   │   ├── base.html              # Base template (navbar, footer)
+│   │   ├── main.html              # Authenticated user layout
+│   │   ├── index.html             # Landing page
+│   │   ├── login.html             # Login page
+│   │   ├── register.html          # Registration page
+│   │   ├── dashboard.html         # User dashboard
+│   │   ├── new_analysis.html      # Upload & analyze
+│   │   ├── history.html           # Analysis history
+│   │   ├── metrics.html           # Emotion analytics
+│   │   ├── profile.html           # User profile
+│   │   └── demo.html              # Demo page
+│   └── images_videos/
+│       └── catbg1.mp4             # Background video
+├── backend/
+│   ├── inference/
+│   │   ├── predictor.py           # AI prediction logic
+│   │   └── model_loader.py        # Load AI models
+│   └── main.py                    # Backend entry point
+├── database/
+│   ├── database_logic.py          # SQLAlchemy models
+│   └── cat_emotion.db             # SQLite database
+├── app.py                         # Flask application (main)
+└── requirements.txt               # Python dependencies
+
+================================================================================
+2. CSS ARCHITECTURE & COLOR SYSTEM
+================================================================================
+
+FILE: front_end/static/styles/main.css
+
+The CSS is organized into 27 sections for easy navigation:
+
+SECTION 1: Google Fonts
+- Poppins (body text)
+- Fredoka (display/headings)
+
+SECTION 2: Premium Color Palette (CSS Variables)
+Location: Lines 10-50
+All colors are defined as CSS variables in :root {}
+
+PRIMARY COLORS:
+--c-cat-eye: #FFD700           (Golden cat eye)
+--c-cat-pupil: #1a1a1a         (Dark pupil)
+--c-primary: #FF6B9D            (Hot Pink - main brand color)
+--c-primary-hover: #FF4081      (Deeper Pink - hover state)
+--c-secondary: #4ECDC4          (Turquoise)
+--c-accent: #FFE66D             (Sunny Yellow)
+--c-purple: #A78BFA             (Soft Purple)
+--c-orange: #FF8C42             (Vibrant Orange)
+
+GRADIENTS:
+--gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%)
+--gradient-sunset: linear-gradient(135deg, #FF6B9D 0%, #FFA07A 50%, #FFE66D 100%)
+--gradient-ocean: linear-gradient(135deg, #4ECDC4 0%, #556270 100%)
+--gradient-candy: linear-gradient(135deg, #FF6B9D 0%, #A78BFA 100%)
+--gradient-rainbow: linear-gradient(90deg, #FF6B9D 0%, #FFE66D 25%, #4ECDC4 50%, #A78BFA 75%, #FF8C42 100%)
+
+BACKGROUNDS:
+--c-bg-app: #0f0f1e             (Main dark background)
+--c-bg-surface: #1a1a2e         (Card background)
+--c-bg-card: #16213e            (Nested card background)
+
+TEXT COLORS:
+--c-text-main: #ffffff          (Primary text - white)
+--c-text-body: #e0e0e0          (Body text - light gray)
+--c-text-muted: #a0a0a0         (Muted text - gray)
+
+EMOTION COLORS:
+--c-emo-happy: #10B981          (Green)
+--c-emo-sad: #3B82F6            (Blue)
+--c-emo-angry: #EF4444          (Red)
+--c-emo-curious: #8B5CF6        (Purple)
+--c-emo-fear: #F59E0B           (Orange)
+--c-emo-relaxed: #14B8A6        (Teal)
+
+SECTION 3: Reset & Base Styles
+- Universal box-sizing
+- Body font and background
+- Smooth scrolling
+
+SECTION 4: Cat Eyes Background Animation
+Location: Lines 70-85
+The animated cat eyes background using radial gradients
+- Two golden eyes with dark pupils
+- Blink animation every 6 seconds
+- Fixed position, low opacity overlay
+
+SECTION 5: Premium Buttons
+Location: Lines 95-145
+- .btn (base button)
+- .btn-primary (main CTA button)
+- .btn-ghost (outline button)
+- .btn-lg, .btn-sm (size variants)
+- .btn-block (full width)
+
+SECTION 6: Premium Navbar
+Location: Lines 150-210
+- Fixed position with backdrop blur
+- Logo with float animation
+- Navigation links with underline effect
+
+SECTIONS 7-27: Layout Components
+- Container & Layout
+- Hero Section
+- Stats Bar
+- Feature Cards
+- Two-Column Layout
+- Footer
+- Cards & Surfaces
+- Forms
+- Dropzone
+- Tables
+- Badges
+- Progress Bars
+- Stat Cards
+- Page Layouts
+- Result Card
+- Utility Classes
+- Responsive Design
+- Animations
+- Loading States
+- Accessibility
+- Print Styles
+
+================================================================================
+3. HTML TEMPLATE STRUCTURE
+================================================================================
+
+BASE TEMPLATE (base.html):
+- Contains <head> with meta tags
+- Loads CSS and fonts
+- Defines {% block %} sections for child templates
+
+MAIN TEMPLATE (main.html):
+- Extends base.html
+- Adds authenticated user navbar
+- Sidebar navigation
+- Flash message display
+
+LANDING PAGE (index.html):
+Key Sections:
+1. Navbar (fixed top)
+2. Hero Section (full viewport height)
+3. Stats Bar (4 statistics)
+4. Demo Video Section (with fallback)
+5. Features Section (6 feature cards)
+6. How AI Works (two-column: video left, 4 steps right)
+7. Start Understanding Section (centered video placeholder)
+8. Footer (3 columns: Platform | MeowMind | Account)
+
+ANALYSIS PAGE (new_analysis.html):
+- File upload form with drag & drop
+- File type selector (image/audio)
+- Result display with emotion badge
+- Recommendation based on emotion
+
+HISTORY PAGE (history.html):
+- Table of all past predictions
+- Date, filename, type, emotion columns
+- Summary statistics cards
+
+METRICS PAGE (metrics.html):
+- Overview stat cards
+- Emotion distribution with progress bars
+- Emotion guide with descriptions
+
+================================================================================
+4. JAVASCRIPT FUNCTIONALITY
+================================================================================
+
+VIDEO LOADING (index.html):
+Location: Lines 100-150 in index.html
+
+Features:
+- Auto-retry video loading (3 attempts)
+- Error handling with fallback UI
+- Console logging for debugging
+- Manual retry button
+
+Key Functions:
+- tryPlayVideo(): Attempts to play video
+- retryVideo(): Reloads and retries video
+
+FORM HANDLING (new_analysis.html):
+- File input change detection
+- Drag & drop zone interaction
+- Form validation
+
+================================================================================
+5. HOW TO EDIT COLORS
+================================================================================
+
+STEP 1: Open front_end/static/styles/main.css
+
+STEP 2: Find the :root {} section (lines 10-50)
+
+STEP 3: Change any CSS variable value
+
+EXAMPLE: Change primary brand color from pink to blue
+BEFORE:
+--c-primary: #FF6B9D;
+
+AFTER:
+--c-primary: #3B82F6;
+
+EXAMPLE: Change background from dark to light
+BEFORE:
+--c-bg-app: #0f0f1e;
+
+AFTER:
+--c-bg-app: #ffffff;
+
+EXAMPLE: Change cat eye color from gold to green
+BEFORE:
+--c-cat-eye: #FFD700;
+
+AFTER:
+--c-cat-eye: #10B981;
+
+IMPORTANT: All colors use CSS variables, so changing them in :root {}
+will update the entire site automatically!
+
+================================================================================
+6. HOW TO EDIT LAYOUTS
+================================================================================
+
+CHANGE HERO SECTION TEXT:
+File: front_end/templates/index.html
+Location: Lines 30-50
+Edit the <h1> and <p> tags inside .hero-section
+
+CHANGE FOOTER LINKS:
+File: front_end/templates/index.html
+Location: Lines 200-230
+Edit the <a> tags inside .footer-grid
+
+CHANGE NAVBAR LINKS:
+File: front_end/templates/index.html
+Location: Lines 15-25
+Edit the <a> tags inside .nav-links
+
+ADD NEW FEATURE CARD:
+File: front_end/templates/index.html
+Location: Lines 120-180
+Copy a .feature-box div and edit the icon, title, and description
+
+CHANGE TWO-COLUMN LAYOUT:
+File: front_end/templates/index.html
+Location: Lines 185-220
+The .two-column-section uses CSS Grid
+- Left column: video placeholder
+- Right column: 4 steps
+
+To swap columns, change grid-template-columns order in CSS
+
+================================================================================
+7. HOW TO ADD NEW FEATURES
+================================================================================
+
+ADD NEW PAGE:
+1. Create new HTML file in front_end/templates/
+2. Extend base.html or main.html
+3. Add route in app.py
+4. Add navigation link in navbar
+
+EXAMPLE:
+# In app.py
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
+# In front_end/templates/about.html
+{% extends "base.html" %}
+{% block content %}
+<h1>About MeowMind</h1>
+{% endblock %}
+
+ADD NEW EMOTION:
+1. Add color variable in main.css :root {}
+2. Add emotion badge style in CSS
+3. Update predictor.py to return new emotion
+4. Update metrics.html emotion guide
+
+================================================================================
+8. DATABASE STRUCTURE
+================================================================================
+
+FILE: database/database_logic.py
+
+MODELS:
+
+User Model:
+- id (Integer, Primary Key)
+- name (String, default='Cat Lover')
+- email (String, unique)
+- password_hash (String)
+- predictions (Relationship to Prediction)
+
+Prediction Model:
+- id (Integer, Primary Key)
+- user_id (Integer, Foreign Key to User)
+- file_type (String: 'image' or 'audio')
+- filename (String)
+- prediction_result (String: emotion name)
+- confidence (Float, optional)
+- timestamp (DateTime, auto-generated)
+
+QUERY EXAMPLES:
+
+Get all predictions for a user:
+predictions = Prediction.query.filter_by(user_id=user_id).all()
+
+Get recent predictions:
+recent = Prediction.query.filter_by(user_id=user_id)\
+    .order_by(Prediction.timestamp.desc()).limit(10).all()
+
+Count predictions by emotion:
+from collections import Counter
+emotions = Counter(p.prediction_result for p in predictions)
+
+================================================================================
+9. BACKEND AI INTEGRATION
+================================================================================
+
+FILE: backend/inference/predictor.py
+
+FUNCTIONS:
+
+predict_image(image_path):
+- Loads ResNet50 model
+- Preprocesses image
+- Returns emotion string
+
+predict_audio(audio_path):
+- Loads Random Forest model
+- Extracts audio features
+- Returns emotion string
+
+SUPPORTED EMOTIONS:
+- Happy
+- Sad
+- Angry
+- Fearful
+- Curious
+- Relaxed
+
+FILE: backend/inference/model_loader.py
+- Loads pre-trained models
+- Caches models in memory
+- Handles model errors
+
+================================================================================
+10. COMMON CUSTOMIZATION TASKS
+================================================================================
+
+TASK 1: Change Site Name
+Files to edit:
+- front_end/templates/base.html (title tag)
+- front_end/templates/index.html (navbar logo)
+- front_end/templates/main.html (sidebar logo)
+
+TASK 2: Change Button Styles
+File: front_end/static/styles/main.css
+Section: 5. Premium Buttons (lines 95-145)
+Edit .btn, .btn-primary, .btn-ghost classes
+
+TASK 3: Add New Stat to Stats Bar
+File: front_end/templates/index.html
+Location: Lines 60-90
+Copy a stat div and edit the number and label
+
+TASK 4: Change Video
+File: front_end/images_videos/
+Replace catbg1.mp4 with your video (keep same name)
+Or update src in index.html to new filename
+
+TASK 5: Customize Emotion Colors
+File: front_end/static/styles/main.css
+Location: Lines 45-50 (emotion color variables)
+Change the hex values for each emotion
+
+TASK 6: Add Social Media Links to Footer
+File: front_end/templates/index.html
+Location: Footer section (lines 200-230)
+Add new <a> tags with social media URLs
+
+TASK 7: Change Font
+File: front_end/static/styles/main.css
+Location: Line 8 (@import statement)
+Replace Google Fonts URL with your preferred fonts
+Update --font-sans and --font-display variables
+
+TASK 8: Disable Cat Eyes Background
+File: front_end/static/styles/main.css
+Location: Lines 70-85 (body::before)
+Comment out or delete the entire body::before {} block
+
+TASK 9: Add Loading Spinner
+File: front_end/static/styles/main.css
+Add new @keyframes spin animation
+Create .spinner class with animation
+
+TASK 10: Change Card Border Radius
+File: front_end/static/styles/main.css
+Search for "border-radius" and change values
+Common values: 8px (subtle), 16px (moderate), 24px (rounded)
+
+================================================================================
+TIPS & BEST PRACTICES
+================================================================================
+
+1. ALWAYS test changes in a development environment first
+2. Use browser DevTools to preview CSS changes before saving
+3. Keep backups of working code before major changes
+4. Use CSS variables for colors to maintain consistency
+5. Follow the existing naming conventions (BEM-like)
+6. Test responsive design on mobile devices
+7. Check accessibility with screen readers
+8. Validate HTML and CSS with W3C validators
+9. Optimize images and videos for web
+10. Document your custom changes in this file
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+ISSUE: Colors not updating
+SOLUTION: Clear browser cache (Ctrl+Shift+R or Cmd+Shift+R)
+
+ISSUE: Video not playing
+SOLUTION: Check video format (MP4 H.264), check file path, check Flask route
+
+ISSUE: Layout broken on mobile
+SOLUTION: Check responsive CSS (@media queries), test on real devices
+
+ISSUE: Buttons not clickable
+SOLUTION: Check z-index, check if element is covered by another
+
+ISSUE: Database errors
+SOLUTION: Delete cat_emotion.db and restart app to recreate database
+
+ISSUE: AI predictions failing
+SOLUTION: Check model files exist, check file upload path, check logs
+
+ISSUE: Flash messages not showing
+SOLUTION: Check base.html has flash message block, check Flask flash() calls
+
+ISSUE: CSS changes not visible
+SOLUTION: Hard refresh browser, check CSS file path, check for syntax errors
+
+================================================================================
+SUPPORT & RESOURCES
+================================================================================
+
+Flask Documentation: https://flask.palletsprojects.com/
+Jinja2 Templates: https://jinja.palletsprojects.com/
+CSS Grid Guide: https://css-tricks.com/snippets/css/complete-guide-grid/
+Flexbox Guide: https://css-tricks.com/snippets/css/a-guide-to-flexbox/
+SQLAlchemy Docs: https://docs.sqlalchemy.org/
+
+================================================================================
+END OF DOCUMENTATION
+================================================================================
+
+Last Updated: March 19, 2026
+Version: 1.0
+Author: MeowMind AI Development Team
+
+For questions or support, refer to the project README.md file.

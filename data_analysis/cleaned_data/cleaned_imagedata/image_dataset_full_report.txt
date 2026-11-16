@@ -1,0 +1,46 @@
+IMAGE DATASET HIERARCHICAL ANALYSIS REPORT
+=======================================================
+
+Input Folder:
+data_analysis\datasets\imagefiles\IMAGES_Dataset
+
+Overall Dataset Statistics:
+Total Image Files: 986
+Total Dataset Size: 5.29 MB
+
+Split Distribution:
+- test: 50 images
+- train: 888 images
+- val: 48 images
+
+Class Distribution Inside Each Split:
+
+test:
+  Angry: 12 images
+  fearful: 12 images
+  Happy: 17 images
+  Sad: 9 images
+
+train:
+  Angry: 231 images
+  fearful: 240 images
+  Happy: 207 images
+  Sad: 210 images
+
+val:
+  Angry: 10 images
+  fearful: 7 images
+  Happy: 12 images
+  Sad: 19 images
+
+Image File Extensions (all):
+.jpg
+
+Why this matters:
+- Shows real ML class distribution
+- Detects class imbalance per split
+- Verifies train/test/val integrity
+
+Conclusion:
+This report provides a hierarchical audit of the image dataset
+including split-level and class-level distributions.

@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block description %}Try CatSense AI for free — Test multimodal cat emotion recognition with one complimentary analysis.{% endblock %}
+{% block title %}Interactive Demo | CatSense AI{% endblock %}
+{% block page_id %}demo{% endblock %}
+
+{% block body %}
+{% include "partials/navbar.html" %}
+
+<main class="demo-wrapper" style="max-width: 900px; margin: 2rem auto; padding: 0 1.5rem 3rem;">
+  <!-- Header -->
+  <div style="text-align: center; margin-bottom: 2rem;">
+    <span class="badge badge-info" style="margin-bottom: 0.75rem;">Interactive Trial</span>
+    <h1 style="font-size: 2.25rem; font-weight: 800; color: var(--text-primary); margin: 0 0 0.5rem;">
+      Experience CatSense AI
+    </h1>
+    <p style="font-size: 1rem; color: var(--text-secondary); max-width: 580px; margin: 0 auto;">
+      Try our deep learning cat emotion recognition pipeline. Create a free account for unlimited scans and longitudinal tracking.
+    </p>
+  </div>
+
+  {% if not trial_used %}
+  <div class="glass-card" style="padding: 2rem; margin-bottom: 2rem;">
+    <form method="POST" action="{{ url_for('demo') }}" enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div style="margin-bottom: 1.5rem;">
+        <label for="file_type" style="display: block; font-size: 0.9rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;">
+          Select Modality
+        </label>
+        <select name="file_type" id="file_type" style="width: 100%; padding: 0.75rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-glass); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem; outline: none;">
+          <option value="image">📷 Image (Facial Expression)</option>
+          <option value="audio">🎙️ Audio (Vocalization)</option>
+          <option value="combined">✨ Combined (Multimodal)</option>
+        </select>
+      </div>
+
+      <div id="singleZone" style="margin-bottom: 1.5rem;">
+        <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.4rem;">
+          Upload Cat Media
+        </label>
+        <div class="dropzone" id="demoDropzone" onclick="document.getElementById('demoFile').click()">
+          <input type="file" name="file" id="demoFile" accept=".png,.jpg,.jpeg,.webp,.mp3,.wav" style="display: none;">
+          <span class="dropzone-icon">📁</span>
+          <div class="dropzone-title">Click to select photo or audio</div>
+          <div class="dropzone-desc">PNG, JPG, WEBP, MP3, WAV (Max 10MB)</div>
+        </div>
+      </div>
+
+      <div id="combinedZone" style="display: none; margin-bottom: 1.5rem;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div>
+            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.4rem;">Photo</label>
+            <input type="file" name="image_file" accept=".png,.jpg,.jpeg,.webp" style="width: 100%; padding: 0.5rem; background: var(--bg-input); color: var(--text-primary); border-radius: var(--radius-sm); border: 1px solid var(--border-glass);">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.4rem;">Audio</label>
+            <input type="file" name="audio_file" accept=".mp3,.wav" style="width: 100%; padding: 0.5rem; background: var(--bg-input); color: var(--text-primary); border-radius: var(--radius-sm); border: 1px solid var(--border-glass);">
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.85rem; font-size: 1rem;">
+        Run Free Prediction
+      </button>
+    </form>
+  </div>
+  {% else %}
+  <div class="glass-card" style="padding: 2.5rem; text-align: center; margin-bottom: 2rem;">
+    <div style="font-size: 3rem; margin-bottom: 0.75rem;">🎉</div>
+    <h3 style="font-size: 1.35rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">
+      Complimentary Analysis Used
+    </h3>
+    <p style="font-size: 0.95rem; color: var(--text-secondary); max-width: 500px; margin: 0 auto 1.5rem;">
+      You've explored our free trial. Register your account to unlock unlimited facial & vocal scans, longitudinal charts, and scan history.
+    </p>
+    <a href="{{ url_for('register') }}" class="btn btn-primary" style="padding: 0.8rem 1.8rem; font-size: 1rem;">
+      Create Free Account
+    </a>
+  </div>
+  {% endif %}
+
+  <!-- Prediction Result Display -->
+  {% if prediction %}
+  <div class="glass-card" style="padding: 2rem; margin-bottom: 2rem; text-align: center;">
+    <div style="font-size: 3.5rem; margin-bottom: 0.25rem;">
+      {% if prediction == 'Angry' %}😾
+      {% elif prediction == 'Fearful' %}🙀
+      {% elif prediction == 'Happy' %}😸
+      {% elif prediction == 'Sad' %}😿
+      {% else %}🐾{% endif %}
+    </div>
+    <span style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">Trial Assessment</span>
+    <h2 style="font-size: 2rem; font-weight: 800; color: var(--text-primary); margin: 0 0 0.5rem;">
+      {{ prediction }}
+    </h2>
+    <span class="badge badge-success" style="font-size: 0.95rem; padding: 0.4rem 1rem;">
+      {{ "%.1f"|format(confidence) }}% Calibrated Confidence
+    </span>
+
+    {% if insight %}
+    <div style="margin-top: 1.5rem; text-align: left;">
+      {% include "partials/insight_card.html" %}
+    </div>
+    {% endif %}
+
+    <div style="margin-top: 2rem;">
+      <a href="{{ url_for('register') }}" class="btn btn-primary">Save Your Scans — Sign Up</a>
+    </div>
+  </div>
+  {% endif %}
+</main>
+
+<script>
+document.getElementById('file_type')?.addEventListener('change', function() {
+  const single = document.getElementById('singleZone');
+  const combined = document.getElementById('combinedZone');
+  if (this.value === 'combined') {
+    single.style.display = 'none';
+    combined.style.display = 'block';
+  } else {
+    single.style.display = 'block';
+    combined.style.display = 'none';
+  }
+});
+
+document.getElementById('demoFile')?.addEventListener('change', function() {
+  if (this.files && this.files[0]) {
+    document.querySelector('.dropzone-title').textContent = this.files[0].name;
+  }
+});
+</script>
+{% endblock %}

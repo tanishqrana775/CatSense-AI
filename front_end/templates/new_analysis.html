@@ -1,0 +1,434 @@
+{% extends "base.html" %}
+
+{% block description %}Upload cat imagery or vocal recordings for multimodal emotion classification and biological insight.{% endblock %}
+{% block title %}New Analysis | CatSense AI{% endblock %}
+{% block page_id %}new-analysis{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Marching ants dropzone effect */
+@keyframes marchingAnts {
+    0% { background-position: 0 0, 0 100%, 0 0, 100% 0; }
+    100% { background-position: 40px 0, -40px 100%, 0 -40px, 100% 40px; }
+}
+
+.dropzone-ants {
+    border: 2px dashed var(--border-glass-hover);
+    transition: all var(--transition-base);
+}
+
+.dropzone-ants.dragover {
+    border-color: var(--accent-primary);
+    background: rgba(99, 102, 241, 0.08);
+}
+
+/* Circular SVG Progress Ring */
+.progress-ring-circle {
+    transition: stroke-dashoffset 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+}
+</style>
+{% endblock %}
+
+{% block body %}
+{% include "partials/navbar.html" %}
+
+<main class="analysis-wrapper" style="max-width: 1100px; margin: 2rem auto; padding: 0 1.5rem 3rem;">
+  <!-- Header Title -->
+  <div style="text-align: center; margin-bottom: 2.25rem;">
+    <h1 style="font-size: 2.25rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.5rem;">
+      Feline Emotion Analysis Control Room
+    </h1>
+    <p style="font-size: 1rem; color: var(--text-secondary); max-width: 600px; margin: 0 auto;">
+      Upload facial images, meow audio recordings, or execute synchronous Bayesian multimodal fusion.
+    </p>
+  </div>
+
+  <!-- Segmented Control Selector -->
+  <div style="display: flex; justify-content: center; margin-bottom: 2rem;">
+    <div class="segmented-control" role="tablist" aria-label="Analysis Modality">
+      <button type="button" class="segment-btn active" data-modality="image" role="tab" aria-selected="true" id="tab-image">
+        📷 Image (Facial)
+      </button>
+      <button type="button" class="segment-btn" data-modality="audio" role="tab" aria-selected="false" id="tab-audio">
+        🎙️ Audio (Vocal)
+      </button>
+      <button type="button" class="segment-btn" data-modality="both" role="tab" aria-selected="false" id="tab-both">
+        ✨ Both (Multimodal)
+      </button>
+    </div>
+  </div>
+
+  <!-- Interactive Analysis Grid -->
+  <div class="analysis-grid" style="display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 2rem; align-items: start;">
+    <!-- Left Column: Upload Workspace -->
+    <div class="glass-card" style="padding: 2rem;">
+      <form id="analysisForm" method="POST" action="{{ url_for('new_analysis') }}" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="file_type" id="formModality" value="image">
+
+        <!-- Image Input Container -->
+        <div id="imageInputZone" class="input-zone" style="margin-bottom: 1.5rem;">
+          <label style="display: block; font-size: 0.9rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;">
+            Cat Facial Image
+          </label>
+          <div class="dropzone dropzone-ants" id="imageDropzone" tabindex="0" role="button" aria-label="Select cat image file">
+            <input type="file" name="file" id="imageFileInput" accept=".png,.jpg,.jpeg,.webp" style="display: none;">
+            <input type="file" name="image_file" id="imageFileCombined" accept=".png,.jpg,.jpeg,.webp" style="display: none;">
+            <div id="imagePreviewContainer" style="display: none; margin-bottom: 0.75rem;">
+              <img id="imagePreview" src="#" alt="Preview" style="max-height: 180px; max-width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--border-glass); object-fit: contain;">
+            </div>
+            <div id="imagePromptContent">
+              <span class="dropzone-icon">📷</span>
+              <div class="dropzone-title">Drop your cat's photo here</div>
+              <div class="dropzone-desc">PNG, JPG, WEBP (Max 10MB) · Click or press Enter to browse</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Audio Input Container -->
+        <div id="audioInputZone" class="input-zone" style="display: none; margin-bottom: 1.5rem;">
+          <label style="display: block; font-size: 0.9rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;">
+            Cat Vocalization Audio
+          </label>
+          <div class="dropzone dropzone-ants" id="audioDropzone" tabindex="0" role="button" aria-label="Select cat audio file">
+            <input type="file" name="audio_file" id="audioFileInput" accept=".wav,.mp3,.ogg,.flac,.m4a" style="display: none;">
+            <div id="audioPreviewContainer" style="display: none; margin-bottom: 0.75rem;">
+              <audio id="audioPreview" controls style="max-width: 100%;"></audio>
+            </div>
+            <div id="audioPromptContent">
+              <span class="dropzone-icon">🎙️</span>
+              <div class="dropzone-title">Drop meow audio recording here</div>
+              <div class="dropzone-desc">WAV, MP3, OGG, FLAC (Max 10MB) · Click or press Enter to browse</div>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" id="analyzeBtn" class="btn btn-primary" style="width: 100%; padding: 0.9rem; font-size: 1.05rem;">
+          <span id="btnText">Run Neural Analysis</span>
+          <span id="btnSpinner" style="display: none;">Analyzing... ⏳</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- Right Column: Interactive Circular Gauge & Real-time Live Result -->
+    <div class="glass-card" style="padding: 2rem; text-align: center;" id="resultPanel">
+      <div id="idleState">
+        <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.7;">✨</div>
+        <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">
+          Ready for Inference
+        </h3>
+        <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; margin: 0;">
+          Select a modality, choose your media files, and initiate the analysis to view calibrated class distributions.
+        </p>
+      </div>
+
+      <!-- Live Loading Ring -->
+      <div id="loadingState" style="display: none; padding: 2rem 0;">
+        <svg width="140" height="140" viewBox="0 0 140 140" style="margin: 0 auto; display: block;">
+          <circle cx="70" cy="70" r="58" stroke="var(--border-glass)" stroke-width="10" fill="transparent"/>
+          <circle id="progressCircle" class="progress-ring-circle" cx="70" cy="70" r="58" stroke="var(--accent-primary)" stroke-width="10" stroke-linecap="round" fill="transparent" stroke-dasharray="364.4" stroke-dashoffset="364.4"/>
+        </svg>
+        <div id="progressPercent" style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin-top: 1rem;">0%</div>
+        <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">Computing Log-Mel Features & Logits...</div>
+      </div>
+
+      <!-- Live Result Display (Updated via API or Server-Rendered) -->
+      <div id="liveResultContainer" style="display: {% if prediction %}block{% else %}none{% endif %}; text-align: left;">
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+          <span id="resEmoji" style="font-size: 3.5rem; display: block; margin-bottom: 0.25rem;">
+            {% if prediction == 'Angry' %}😾
+            {% elif prediction == 'Fearful' %}🙀
+            {% elif prediction == 'Happy' %}😸
+            {% elif prediction == 'Sad' %}😿
+            {% else %}🐾{% endif %}
+          </span>
+          <span style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">Detected Emotion</span>
+          <h2 id="resEmotion" style="font-size: 2rem; font-weight: 800; color: var(--text-primary); margin: 0;">
+            {{ prediction or '' }}
+          </h2>
+          <div style="margin-top: 0.5rem;">
+            <span id="resConfidenceBadge" class="badge badge-success" style="font-size: 0.9rem;">
+              <span id="resConfidenceVal">{{ "%.1f"|format(confidence) if confidence else '' }}</span>% Calibrated Confidence
+            </span>
+          </div>
+        </div>
+
+        <!-- Probabilities Breakdown -->
+        <div id="resProbBars" style="margin-bottom: 1.5rem;">
+          <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
+            Class Probabilities
+          </div>
+          <div id="probBarsList" style="display: flex; flex-direction: column; gap: 0.65rem;"></div>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; justify-content: center;">
+          <a href="{{ url_for('history') }}" class="btn btn-secondary" style="flex: 1; font-size: 0.875rem;">View History</a>
+          <a href="{{ url_for('metrics') }}" class="btn btn-secondary" style="flex: 1; font-size: 0.875rem;">View Analytics</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dynamic Biological Insight Container -->
+  <div id="insightCardWrapper">
+    {% if insight %}
+      {% include "partials/insight_card.html" %}
+    {% endif %}
+  </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const segmentBtns = document.querySelectorAll('.segment-btn');
+  const imageInputZone = document.getElementById('imageInputZone');
+  const audioInputZone = document.getElementById('audioInputZone');
+  const formModality = document.getElementById('formModality');
+
+  const imageDropzone = document.getElementById('imageDropzone');
+  const imageFileInput = document.getElementById('imageFileInput');
+  const imageFileCombined = document.getElementById('imageFileCombined');
+  const imagePreview = document.getElementById('imagePreview');
+  const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+  const imagePromptContent = document.getElementById('imagePromptContent');
+
+  const audioDropzone = document.getElementById('audioDropzone');
+  const audioFileInput = document.getElementById('audioFileInput');
+  const audioPreview = document.getElementById('audioPreview');
+  const audioPreviewContainer = document.getElementById('audioPreviewContainer');
+  const audioPromptContent = document.getElementById('audioPromptContent');
+
+  const analysisForm = document.getElementById('analysisForm');
+  const idleState = document.getElementById('idleState');
+  const loadingState = document.getElementById('loadingState');
+  const liveResultContainer = document.getElementById('liveResultContainer');
+  const progressCircle = document.getElementById('progressCircle');
+  const progressPercent = document.getElementById('progressPercent');
+  const insightCardWrapper = document.getElementById('insightCardWrapper');
+
+  let activeModality = 'image';
+
+  // Segmented control click handler
+  segmentBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      segmentBtns.forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-selected', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-selected', 'true');
+      activeModality = btn.dataset.modality;
+      formModality.value = activeModality;
+
+      if (activeModality === 'image') {
+        imageInputZone.style.display = 'block';
+        audioInputZone.style.display = 'none';
+        imageFileInput.name = 'file';
+        imageFileCombined.name = '';
+      } else if (activeModality === 'audio') {
+        imageInputZone.style.display = 'none';
+        audioInputZone.style.display = 'block';
+        audioFileInput.name = 'file';
+      } else { // both
+        imageInputZone.style.display = 'block';
+        audioInputZone.style.display = 'block';
+        imageFileInput.name = '';
+        imageFileCombined.name = 'image_file';
+        audioFileInput.name = 'audio_file';
+      }
+    });
+  });
+
+  // Dropzone file picker trigger
+  function setupDropzone(dropzone, input) {
+    dropzone.addEventListener('click', () => input.click());
+    dropzone.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        input.click();
+      }
+    });
+
+    ['dragenter', 'dragover'].forEach(event => {
+      dropzone.addEventListener(event, (e) => {
+        e.preventDefault();
+        dropzone.classList.add('dragover');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach(event => {
+      dropzone.addEventListener(event, (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+      });
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        input.files = e.dataTransfer.files;
+        input.dispatchEvent(new Event('change'));
+      }
+    });
+  }
+
+  setupDropzone(imageDropzone, imageFileInput);
+  setupDropzone(audioDropzone, audioFileInput);
+
+  // Previews
+  function handleImagePreview(file) {
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        imagePreview.src = e.target.result;
+        imagePreviewContainer.style.display = 'block';
+        imagePromptContent.style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  imageFileInput.addEventListener('change', function() {
+    if (this.files && this.files[0]) handleImagePreview(this.files[0]);
+  });
+  imageFileCombined.addEventListener('change', function() {
+    if (this.files && this.files[0]) handleImagePreview(this.files[0]);
+  });
+
+  audioFileInput.addEventListener('change', function() {
+    if (this.files && this.files[0]) {
+      const file = this.files[0];
+      audioPreview.src = URL.createObjectURL(file);
+      audioPreviewContainer.style.display = 'block';
+      audioPromptContent.style.display = 'none';
+    }
+  });
+
+  // Form AJAX submission
+  analysisForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+    const formData = new FormData();
+    formData.append('modality', activeModality);
+
+    if (activeModality === 'image') {
+      const f = imageFileInput.files[0];
+      if (!f) { alert('Please select an image file first.'); return; }
+      formData.append('image_file', f);
+    } else if (activeModality === 'audio') {
+      const f = audioFileInput.files[0];
+      if (!f) { alert('Please select an audio recording first.'); return; }
+      formData.append('audio_file', f);
+    } else { // both
+      const img = imageFileCombined.files[0] || imageFileInput.files[0];
+      const aud = audioFileInput.files[0];
+      if (!img || !aud) { alert('Both image and audio files are required for combined multimodal analysis.'); return; }
+      formData.append('image_file', img);
+      formData.append('audio_file', aud);
+    }
+
+    // UI state: loading
+    idleState.style.display = 'none';
+    liveResultContainer.style.display = 'none';
+    loadingState.style.display = 'block';
+    document.getElementById('btnText').style.display = 'none';
+    document.getElementById('btnSpinner').style.display = 'inline';
+    document.getElementById('analyzeBtn').disabled = true;
+
+    // Animate progress ring
+    const circumference = 364.4;
+    let currentProgress = 0;
+    const progressTimer = setInterval(() => {
+      if (currentProgress < 90) {
+        currentProgress += Math.floor(Math.random() * 8) + 4;
+        if (currentProgress > 90) currentProgress = 90;
+        const offset = circumference - (currentProgress / 100) * circumference;
+        progressCircle.style.strokeDashoffset = offset;
+        progressPercent.textContent = currentProgress + '%';
+      }
+    }, 120);
+
+    fetch('/api/analyze', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrfToken
+      },
+      body: formData
+    })
+    .then(res => {
+      if (!res.ok) {
+        return res.json().then(j => { throw new Error(j.error || 'Inference error'); });
+      }
+      return res.json();
+    })
+    .then(data => {
+      clearInterval(progressTimer);
+      progressCircle.style.strokeDashoffset = '0';
+      progressPercent.textContent = '100%';
+
+      setTimeout(() => {
+        loadingState.style.display = 'none';
+        liveResultContainer.style.display = 'block';
+        document.getElementById('btnText').style.display = 'inline';
+        document.getElementById('btnSpinner').style.display = 'none';
+        document.getElementById('analyzeBtn').disabled = false;
+
+        // Render result data
+        document.getElementById('resEmoji').textContent = data.emoji;
+        document.getElementById('resEmotion').textContent = data.emotion;
+        document.getElementById('resConfidenceVal').textContent = data.confidence;
+
+        // Render probability bars
+        const probContainer = document.getElementById('probBarsList');
+        probContainer.innerHTML = '';
+        if (data.probabilities) {
+          for (const [cls, val] of Object.entries(data.probabilities)) {
+            const pct = (val * 100).toFixed(1);
+            let barColor = 'var(--c-sad)';
+            if (cls === 'Happy') barColor = 'var(--c-happy)';
+            else if (cls === 'Fearful') barColor = 'var(--c-fearful)';
+            else if (cls === 'Angry') barColor = 'var(--c-angry)';
+
+            const row = document.createElement('div');
+            row.innerHTML = `
+              <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:600; margin-bottom:0.25rem;">
+                <span style="color:var(--text-primary);">${cls}</span>
+                <span style="color:var(--text-secondary);">${pct}%</span>
+              </div>
+              <div style="height:6px; background:var(--bg-glass-elevated); border-radius:9999px; overflow:hidden;">
+                <div style="height:100%; width:${pct}%; background:${barColor}; border-radius:9999px; transition:width 0.4s ease;"></div>
+              </div>
+            `;
+            probContainer.appendChild(row);
+          }
+        }
+
+        // Inject biological insight card
+        if (data.insight_html) {
+          insightCardWrapper.innerHTML = data.insight_html;
+          insightCardWrapper.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }, 400);
+    })
+    .catch(err => {
+      clearInterval(progressTimer);
+      loadingState.style.display = 'none';
+      idleState.style.display = 'block';
+      document.getElementById('btnText').style.display = 'inline';
+      document.getElementById('btnSpinner').style.display = 'none';
+      document.getElementById('analyzeBtn').disabled = false;
+      alert('Analysis Error: ' + err.message);
+    });
+  });
+});
+</script>
+
+<style>
+@media (max-width: 840px) {
+  .analysis-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+</style>
+{% endblock %}

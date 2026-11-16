@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block description %}Manage your CatSense AI account profile and credentials{% endblock %}
+{% block title %}Profile & Settings | CatSense AI{% endblock %}
+{% block page_id %}profile{% endblock %}
+
+{% block body %}
+{% include "partials/navbar.html" %}
+
+<main class="profile-wrapper" style="max-width: 1100px; margin: 2rem auto; padding: 0 1.5rem 3rem;">
+  <!-- Profile Banner -->
+  <div class="glass-card" style="padding: 2.25rem; margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem;">
+    <div style="display: flex; align-items: center; gap: 1.5rem;">
+      <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-primary) 0%, #4338CA 100%); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; box-shadow: 0 4px 20px var(--accent-glow);">
+        🐱
+      </div>
+      <div>
+        <h1 style="font-size: 1.85rem; font-weight: 800; color: var(--text-primary); margin: 0 0 0.25rem;">
+          {{ current_user.display_name }}
+        </h1>
+        <p style="font-size: 0.95rem; color: var(--text-secondary); margin: 0 0 0.5rem;">
+          {{ current_user.email }}
+        </p>
+        <span class="badge badge-success">Active Member</span>
+      </div>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+      <a href="{{ url_for('new_analysis') }}" class="btn btn-primary">New Analysis</a>
+      <a href="{{ url_for('logout') }}" class="btn btn-danger">Log Out</a>
+    </div>
+  </div>
+
+  <!-- Profile Columns -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start;">
+    <!-- Left Column: Edit Settings -->
+    <div class="glass-card" style="padding: 2rem;">
+      <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin: 0 0 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+        <span>⚙️</span> Update Profile & Security
+      </h3>
+
+      <form method="POST" action="{{ url_for('update_profile') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div style="margin-bottom: 1.25rem;">
+          <label for="name" style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.4rem;">
+            Display Name
+          </label>
+          <input 
+            type="text" 
+            id="name" 
+            name="name" 
+            value="{{ current_user.name or '' }}"
+            placeholder="Your name or cat's name"
+            style="width: 100%; padding: 0.75rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-glass); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem; outline: none;"
+          >
+        </div>
+
+        <div style="margin-bottom: 1.25rem;">
+          <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.4rem;">
+            Registered Email
+          </label>
+          <input 
+            type="text" 
+            value="{{ current_user.email }}" 
+            disabled 
+            style="width: 100%; padding: 0.75rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-glass); background: var(--bg-glass-elevated); color: var(--text-muted); font-size: 0.95rem; cursor: not-allowed;"
+          >
+          <small style="color: var(--text-muted); font-size: 0.75rem;">Account email cannot be modified directly.</small>
+        </div>
+
+        <div style="margin-bottom: 1.25rem;">
+          <label for="password" style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.4rem;">
+            New Password (leave blank to keep current)
+          </label>
+          <input 
+            type="password" 
+            id="password" 
+            name="password" 
+            placeholder="Min. 6 characters"
+            style="width: 100%; padding: 0.75rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-glass); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem; outline: none;"
+          >
+        </div>
+
+        <div style="margin-bottom: 1.75rem;">
+          <label for="confirm_password" style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.4rem;">
+            Confirm New Password
+          </label>
+          <input 
+            type="password" 
+            id="confirm_password" 
+            name="confirm_password" 
+            placeholder="Re-enter new password"
+            style="width: 100%; padding: 0.75rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-glass); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem; outline: none;"
+          >
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.85rem;">
+          Save Changes
+        </button>
+      </form>
+    </div>
+
+    <!-- Right Column: Account Stats -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+      <div class="glass-card" style="padding: 1.75rem;">
+        <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin: 0 0 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+          <span>📊</span> Usage Summary
+        </h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div style="padding: 1rem; background: var(--bg-glass); border-radius: var(--radius-sm); text-align: center;">
+            <div style="font-size: 1.85rem; font-weight: 800; color: var(--text-primary);">{{ total_predictions }}</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Total Scans</div>
+          </div>
+          <div style="padding: 1rem; background: var(--bg-glass); border-radius: var(--radius-sm); text-align: center;">
+            <div style="font-size: 1.85rem; font-weight: 800; color: var(--c-happy);">{{ overall_avg_confidence }}%</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Avg Confidence</div>
+          </div>
+          <div style="padding: 1rem; background: var(--bg-glass); border-radius: var(--radius-sm); text-align: center;">
+            <div style="font-size: 1.85rem; font-weight: 800; color: var(--accent-primary);">{{ image_count }}</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Image Scans</div>
+          </div>
+          <div style="padding: 1rem; background: var(--bg-glass); border-radius: var(--radius-sm); text-align: center;">
+            <div style="font-size: 1.85rem; font-weight: 800; color: var(--c-sad);">{{ audio_count }}</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Audio Scans</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card" style="padding: 1.75rem;">
+        <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin: 0 0 1rem; display: flex; align-items: center; gap: 0.5rem;">
+          <span>ℹ️</span> Account Information
+        </h3>
+        <div style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.9rem;">
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Member Since:</span>
+            <span style="color: var(--text-primary); font-weight: 500;">{{ current_user.created_at.strftime('%B %d, %Y') }}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Account ID:</span>
+            <span style="color: var(--text-primary); font-weight: 500;">#{{ current_user.id }}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Privacy Mode:</span>
+            <span class="badge badge-success">In-Memory Pipeline</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<style>
+@media (max-width: 800px) {
+  .profile-wrapper div[style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+</style>
+{% endblock %}

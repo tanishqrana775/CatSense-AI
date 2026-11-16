@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block description %}CatSense AI Dashboard — View your feline emotion analysis metrics and recent scans{% endblock %}
+{% block title %}Dashboard | CatSense AI{% endblock %}
+{% block page_id %}dashboard{% endblock %}
+
+{% block body %}
+{% include "partials/navbar.html" %}
+
+<main class="dashboard-wrapper" style="max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem 3rem;">
+  <!-- Welcome Banner -->
+  <div class="glass-card" style="padding: 2.25rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem; position: relative; overflow: hidden;">
+    <div style="z-index: 1;">
+      <h1 style="font-size: 2.2rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.5rem;">
+        Welcome back, <span style="color: var(--accent-primary);">{{ current_user.display_name }}</span>! 👋
+      </h1>
+      <p style="font-size: 1.05rem; color: var(--text-secondary); margin-bottom: 1.5rem; max-width: 600px;">
+        Here is your feline behavioral analytics overview. Start a new facial or acoustic scan to update insights.
+      </p>
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <a href="{{ url_for('new_analysis') }}" class="btn btn-primary" style="padding: 0.75rem 1.5rem;">
+          🚀 Start New Analysis
+        </a>
+        <a href="{{ url_for('metrics') }}" class="btn btn-secondary" style="padding: 0.75rem 1.4rem;">
+          📊 View Analytics Charts
+        </a>
+      </div>
+    </div>
+    <div style="z-index: 1; text-align: center;">
+      <div style="width: 110px; height: 110px; border-radius: 50%; background: var(--bg-surface); border: 3px solid var(--accent-primary); display: flex; align-items: center; justify-content: center; font-size: 3.5rem; box-shadow: 0 10px 30px var(--accent-glow);">
+        🐾
+      </div>
+    </div>
+  </div>
+
+  <!-- Key Statistics Grid (Real User Stats, Zero Fake Metrics) -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+    <div class="glass-card" style="padding: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+        <span style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">Total Analyses</span>
+        <span style="font-size: 1.25rem;">📈</span>
+      </div>
+      <div style="font-size: 2rem; font-weight: 800; color: var(--text-primary);">{{ total_predictions }}</div>
+      <small style="color: var(--text-secondary); font-size: 0.8rem;">Recorded in your account</small>
+    </div>
+
+    <div class="glass-card" style="padding: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+        <span style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">Mean Confidence</span>
+        <span style="font-size: 1.25rem;">🎯</span>
+      </div>
+      <div style="font-size: 2rem; font-weight: 800; color: var(--c-happy);">{{ overall_avg_confidence }}%</div>
+      <small style="color: var(--text-secondary); font-size: 0.8rem;">Empirical calibrated score</small>
+    </div>
+
+    <div class="glass-card" style="padding: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+        <span style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">Dominant State</span>
+        <span style="font-size: 1.25rem;">😸</span>
+      </div>
+      <div style="font-size: 2rem; font-weight: 800; color: var(--accent-primary);">
+        {% if most_common_emotion %}{{ most_common_emotion[0] }}{% else %}—{% endif %}
+      </div>
+      <small style="color: var(--text-secondary); font-size: 0.8rem;">
+        {% if most_common_emotion %}{{ most_common_emotion[1] }} scan(s){% else %}No scans yet{% endif %}
+      </small>
+    </div>
+
+    <div class="glass-card" style="padding: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+        <span style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">Modality Breakdown</span>
+        <span style="font-size: 1.25rem;">🔍</span>
+      </div>
+      <div style="font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin-top: 0.5rem;">
+        {{ image_count }} <small style="font-size: 0.75rem; color: var(--text-muted);">Img</small> · 
+        {{ audio_count }} <small style="font-size: 0.75rem; color: var(--text-muted);">Aud</small> · 
+        {{ combined_count }} <small style="font-size: 0.75rem; color: var(--text-muted);">Both</small>
+      </div>
+      <small style="color: var(--text-secondary); font-size: 0.8rem;">Active data streams</small>
+    </div>
+  </div>
+
+  <!-- Content Grid: Emotion Breakdown & Recent Activity -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start;">
+    <!-- Emotion Breakdown Card -->
+    <div class="glass-card" style="padding: 1.75rem;">
+      <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+        <span>📊</span> Observed Emotion Distribution
+      </h3>
+
+      {% if total_predictions > 0 %}
+        <div style="display: flex; flex-direction: column; gap: 1.15rem;">
+          {% for emotion, count in emotion_distribution.items() %}
+          {% set pct = (count / total_predictions * 100) if total_predictions > 0 else 0 %}
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.9rem; font-weight: 600; margin-bottom: 0.35rem;">
+              <span style="color: var(--text-primary);">
+                {% if emotion == 'Angry' %}😾 Angry
+                {% elif emotion == 'Fearful' %}🙀 Fearful
+                {% elif emotion == 'Happy' %}😸 Happy
+                {% elif emotion == 'Sad' %}😿 Sad
+                {% else %}{{ emotion }}{% endif %}
+              </span>
+              <span style="color: var(--text-secondary);">{{ count }} ({{ "%.1f"|format(pct) }}%)</span>
+            </div>
+            <div style="height: 8px; width: 100%; background: var(--bg-glass-elevated); border-radius: var(--radius-full); overflow: hidden;">
+              <div style="height: 100%; width: {{ pct }}%; border-radius: var(--radius-full); background: {% if emotion == 'Happy' %}var(--c-happy){% elif emotion == 'Fearful' %}var(--c-fearful){% elif emotion == 'Angry' %}var(--c-angry){% else %}var(--c-sad){% endif %}; transition: width 0.5s ease;"></div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div style="text-align: center; padding: 2.5rem 1rem;">
+          <div style="font-size: 3rem; margin-bottom: 0.75rem; opacity: 0.6;">🐾</div>
+          <h4 style="font-size: 1.05rem; color: var(--text-primary); margin-bottom: 0.25rem;">No Emotion Data Yet</h4>
+          <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1.25rem;">Upload your first cat photo or audio clip to build your profile.</p>
+          <a href="{{ url_for('new_analysis') }}" class="btn btn-primary" style="padding: 0.55rem 1.2rem; font-size: 0.875rem;">
+            Run First Scan
+          </a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Recent Activity Card -->
+    <div class="glass-card" style="padding: 1.75rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+        <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+          <span>🕒</span> Recent Analyses
+        </h3>
+        {% if recent_predictions %}
+        <a href="{{ url_for('history') }}" style="font-size: 0.85rem; font-weight: 600; color: var(--accent-primary); text-decoration: none;">View All →</a>
+        {% endif %}
+      </div>
+
+      {% if recent_predictions %}
+        <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+          {% for pred in recent_predictions[:6] %}
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; background: var(--bg-glass); border: 1px solid var(--border-glass); border-radius: var(--radius-sm);">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <span style="font-size: 1.5rem;">
+                {% if pred.prediction_result == 'Angry' %}😾
+                {% elif pred.prediction_result == 'Fearful' %}🙀
+                {% elif pred.prediction_result == 'Happy' %}😸
+                {% elif pred.prediction_result == 'Sad' %}😿
+                {% else %}🐾{% endif %}
+              </span>
+              <div>
+                <div style="font-size: 0.95rem; font-weight: 600; color: var(--text-primary);">{{ pred.prediction_result }}</div>
+                <div style="font-size: 0.785rem; color: var(--text-muted);">
+                  {{ pred.modality|capitalize if pred.modality else pred.file_type|capitalize }} · {{ pred.timestamp.strftime("%b %d, %H:%M") }}
+                </div>
+              </div>
+            </div>
+            <div>
+              <span class="badge {% if pred.prediction_result == 'Happy' %}badge-success{% elif pred.prediction_result == 'Fearful' %}badge-warning{% elif pred.prediction_result == 'Angry' %}badge-danger{% else %}badge-info{% endif %}">
+                {{ pred.display_confidence }}%
+              </span>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div style="text-align: center; padding: 2.5rem 1rem;">
+          <div style="font-size: 3rem; margin-bottom: 0.75rem; opacity: 0.6;">📁</div>
+          <h4 style="font-size: 1.05rem; color: var(--text-primary); margin-bottom: 0.25rem;">No Recent Scans</h4>
+          <p style="font-size: 0.875rem; color: var(--text-muted); margin: 0;">Completed analyses will appear here automatically.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</main>
+
+<style>
+@media (max-width: 800px) {
+  .dashboard-wrapper div[style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+</style>
+{% endblock %}

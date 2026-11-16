@@ -1,0 +1,56 @@
+# Python & Environments
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.pytest_cache/
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Uploads & Temporary artifacts
+uploads/
+tmp/
+temp/
+
+# Environment Variables & Secrets
+.env
+.env.local
+.env.production
+
+# Backup files
+*.bak
+*.bak*
+*.swp
+*~
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# IDEs & Editor Settings
+.vscode/
+.kiro/
+
+# Machine Learning Models & Weights
+models/
+*.keras
+*.h5
+*.pth
+
+# Temporary SQLite Database Files
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Frontend Media & Design Assets
+front_end/front_end_png/
+front_end/images_videos/
+# Large Media & Legacy Models
+*.mp4
+*.keras
+*.h5

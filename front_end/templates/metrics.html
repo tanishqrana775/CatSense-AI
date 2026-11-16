@@ -1,0 +1,433 @@
+{% extends "base.html" %}
+
+{% block description %}Feline Emotion Analytics — Multi-modal distributions, confidence radar, and scan gallery{% endblock %}
+{% block title %}Analytics & Metrics | CatSense AI{% endblock %}
+{% block page_id %}metrics{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Pinterest-style Masonry Gallery */
+.masonry-grid {
+    column-count: 3;
+    column-gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.masonry-item {
+    break-inside: avoid;
+    margin-bottom: 1.5rem;
+    cursor: pointer;
+    overflow: hidden;
+    transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.masonry-item:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.masonry-img {
+    width: 100%;
+    display: block;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    object-fit: cover;
+    background: var(--bg-surface);
+}
+
+.masonry-body {
+    padding: 1rem 1.25rem;
+}
+
+@media (max-width: 900px) {
+    .masonry-grid { column-count: 2; }
+}
+
+@media (max-width: 600px) {
+    .masonry-grid { column-count: 1; }
+}
+
+/* Modal styling */
+.scan-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 1rem;
+}
+
+.scan-modal-card {
+    max-width: 520px;
+    width: 100%;
+    padding: 2rem;
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+</style>
+{% endblock %}
+
+{% block body %}
+{% include "partials/navbar.html" %}
+
+<main class="metrics-wrapper" style="max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem 3rem;">
+  <!-- Title Header -->
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+    <div>
+      <h1 style="font-size: 2.25rem; font-weight: 800; color: var(--text-primary); margin: 0 0 0.35rem;">
+        Feline Behavioral Analytics
+      </h1>
+      <p style="font-size: 0.95rem; color: var(--text-secondary); margin: 0;">
+        Longitudinal metrics, multi-modal confidence progressions, and scan gallery.
+      </p>
+    </div>
+    <a href="{{ url_for('new_analysis') }}" class="btn btn-primary">
+      🚀 Run New Scan
+    </a>
+  </div>
+
+  <!-- Key Aggregate Metrics -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 2.5rem;">
+    <div class="glass-card" style="padding: 1.5rem;">
+      <div style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.25rem;">Total Scans</div>
+      <div style="font-size: 2rem; font-weight: 800; color: var(--text-primary);">{{ total_predictions }}</div>
+      <small style="color: var(--text-secondary); font-size: 0.8rem;">Recorded observations</small>
+    </div>
+
+    <div class="glass-card" style="padding: 1.5rem;">
+      <div style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.25rem;">Mean Confidence</div>
+      <div style="font-size: 2rem; font-weight: 800; color: var(--c-happy);">{{ overall_avg_confidence }}%</div>
+      <small style="color: var(--text-secondary); font-size: 0.8rem;">Calibrated posterior mean</small>
+    </div>
+
+    <div class="glass-card" style="padding: 1.5rem;">
+      <div style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.25rem;">Facial Mean Conf</div>
+      <div style="font-size: 2rem; font-weight: 800; color: var(--accent-primary);">{{ avg_image_confidence }}%</div>
+      <small style="color: var(--text-secondary); font-size: 0.8rem;">{{ image_count }} image scan(s)</small>
+    </div>
+
+    <div class="glass-card" style="padding: 1.5rem;">
+      <div style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.25rem;">Acoustic Mean Conf</div>
+      <div style="font-size: 2rem; font-weight: 800; color: var(--c-sad);">{{ avg_audio_confidence }}%</div>
+      <small style="color: var(--text-secondary); font-size: 0.8rem;">{{ audio_count }} vocal scan(s)</small>
+    </div>
+  </div>
+
+  <!-- Chart.js Visual Dashboard Grid -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.5rem; margin-bottom: 3rem;">
+    <!-- Chart 1: Doughnut (Emotion Distribution) -->
+    <div class="glass-card" style="padding: 1.75rem;">
+      <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin: 0 0 1rem; display: flex; align-items: center; gap: 0.5rem;">
+        <span>🍩</span> Emotion Distribution
+      </h3>
+      <div style="position: relative; height: 260px; display: flex; align-items: center; justify-content: center;">
+        <canvas id="chartDoughnut"></canvas>
+      </div>
+    </div>
+
+    <!-- Chart 2: Radar (Confidence by Emotion) -->
+    <div class="glass-card" style="padding: 1.75rem;">
+      <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin: 0 0 1rem; display: flex; align-items: center; gap: 0.5rem;">
+        <span>🎯</span> Average Confidence by Class
+      </h3>
+      <div style="position: relative; height: 260px; display: flex; align-items: center; justify-content: center;">
+        <canvas id="chartRadar"></canvas>
+      </div>
+    </div>
+
+    <!-- Chart 3: Line (Confidence Progression Timeline) -->
+    <div class="glass-card" style="padding: 1.75rem; grid-column: 1 / -1;">
+      <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin: 0 0 1rem; display: flex; align-items: center; gap: 0.5rem;">
+        <span>📈</span> Longitudinal Confidence Timeline
+      </h3>
+      <div style="position: relative; height: 240px;">
+        <canvas id="chartLine"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pinterest-Style Masonry Scan Gallery -->
+  <section style="margin-top: 3.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+      <div>
+        <h2 style="font-size: 1.6rem; font-weight: 800; color: var(--text-primary); margin: 0 0 0.25rem;">
+          Recent Scan Gallery
+        </h2>
+        <p style="font-size: 0.9rem; color: var(--text-secondary); margin: 0;">
+          Select any scan to view full neural probability distributions and biological findings.
+        </p>
+      </div>
+    </div>
+
+    {% if all_predictions %}
+    <div class="masonry-grid">
+      {% for scan in all_predictions[:18] %}
+      <div class="glass-card masonry-item" 
+           data-scan-id="{{ scan.id }}"
+           data-emotion="{{ scan.prediction_result }}"
+           data-confidence="{{ scan.display_confidence }}"
+           data-modality="{{ scan.modality or scan.file_type }}"
+           data-time="{{ scan.timestamp.strftime('%B %d, %Y at %H:%M') }}"
+           data-probs='{{ scan.probabilities_json or "{}" }}'
+           onclick="openScanModal(this)">
+        {% if scan.thumb_bytes %}
+          <img src="{{ url_for('scan_thumb', scan_id=scan.id) }}" alt="Cat Scan" class="masonry-img" loading="lazy">
+        {% else %}
+          <div style="height: 120px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(59, 130, 246, 0.1) 100%); display: flex; align-items: center; justify-content: center; font-size: 2.5rem;">
+            🎙️
+          </div>
+        {% endif %}
+        <div class="masonry-body">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+            <span style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary);">
+              {% if scan.prediction_result == 'Angry' %}😾 Angry
+              {% elif scan.prediction_result == 'Fearful' %}🙀 Fearful
+              {% elif scan.prediction_result == 'Happy' %}😸 Happy
+              {% elif scan.prediction_result == 'Sad' %}😿 Sad
+              {% else %}🐾 {{ scan.prediction_result }}{% endif %}
+            </span>
+            <span class="badge {% if scan.prediction_result == 'Happy' %}badge-success{% elif scan.prediction_result == 'Fearful' %}badge-warning{% elif scan.prediction_result == 'Angry' %}badge-danger{% else %}badge-info{% endif %}">
+              {{ scan.display_confidence }}%
+            </span>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.785rem; color: var(--text-muted);">
+            <span>{{ scan.modality|capitalize if scan.modality else scan.file_type|capitalize }}</span>
+            <span>{{ scan.timestamp.strftime("%b %d") }}</span>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="glass-card" style="text-align: center; padding: 3rem 1.5rem; margin-top: 1rem;">
+      <div style="font-size: 3rem; margin-bottom: 0.5rem; opacity: 0.6;">🖼️</div>
+      <h3 style="font-size: 1.15rem; color: var(--text-primary); margin-bottom: 0.35rem;">No Scans in Gallery</h3>
+      <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1.25rem;">Images and audio analyses you run will populate this gallery automatically.</p>
+      <a href="{{ url_for('new_analysis') }}" class="btn btn-primary">Start Analysis</a>
+    </div>
+    {% endif %}
+  </section>
+</main>
+
+<!-- Scan Details Modal -->
+<div class="scan-modal-overlay" id="scanModalOverlay" onclick="closeScanModal(event)">
+  <div class="glass-card scan-modal-card" onclick="event.stopPropagation()">
+    <button type="button" onclick="closeScanModal()" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer;">&times;</button>
+    <div style="text-align: center; margin-bottom: 1.25rem;">
+      <span id="modalEmoji" style="font-size: 3rem; display: block; margin-bottom: 0.25rem;">🐾</span>
+      <h3 id="modalEmotion" style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin: 0;">Emotion</h3>
+      <span id="modalDate" style="font-size: 0.8rem; color: var(--text-muted);">Timestamp</span>
+    </div>
+    <div style="text-align: center; margin-bottom: 1.5rem;">
+      <span id="modalConfBadge" class="badge badge-success" style="font-size: 0.95rem; padding: 0.4rem 1rem;">0.0% Confidence</span>
+    </div>
+
+    <div style="margin-bottom: 1.5rem;">
+      <h5 style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); margin-bottom: 0.5rem;">
+        Probability Vector
+      </h5>
+      <div id="modalProbsList" style="display: flex; flex-direction: column; gap: 0.5rem;"></div>
+    </div>
+
+    <button type="button" class="btn btn-secondary" style="width: 100%;" onclick="closeScanModal()">
+      Close Inspector
+    </button>
+  </div>
+</div>
+
+<!-- Chart.js 4.4.x -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<script>
+let chartDoughnutInstance = null;
+let chartRadarInstance = null;
+let chartLineInstance = null;
+
+function getThemeColors() {
+  const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+  return {
+    textColor: isDark ? '#F9FAFB' : '#0F172A',
+    mutedColor: isDark ? '#9CA3AF' : '#64748B',
+    gridColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
+    happy: '#10B981',
+    sad: '#3B82F6',
+    angry: '#EF4444',
+    fearful: '#F59E0B'
+  };
+}
+
+function initCharts() {
+  fetch('/api/metrics')
+    .then(r => r.json())
+    .then(data => {
+      const colors = getThemeColors();
+
+      // 1. Doughnut Chart
+      const doughnutCtx = document.getElementById('chartDoughnut');
+      if (doughnutCtx) {
+        if (chartDoughnutInstance) chartDoughnutInstance.destroy();
+        const dist = data.emotion_distribution || {};
+        chartDoughnutInstance = new Chart(doughnutCtx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Happy', 'Sad', 'Angry', 'Fearful'],
+            datasets: [{
+              data: [dist.Happy || 0, dist.Sad || 0, dist.Angry || 0, dist.Fearful || 0],
+              backgroundColor: [colors.happy, colors.sad, colors.angry, colors.fearful],
+              borderWidth: 2,
+              borderColor: document.documentElement.getAttribute('data-theme') === 'light' ? '#FFFFFF' : '#111827'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: { color: colors.textColor, font: { family: 'Inter', size: 12 } }
+              }
+            }
+          }
+        });
+      }
+
+      // 2. Radar Chart
+      const radarCtx = document.getElementById('chartRadar');
+      if (radarCtx) {
+        if (chartRadarInstance) chartRadarInstance.destroy();
+        const confs = data.average_confidence_per_emotion || {};
+        chartRadarInstance = new Chart(radarCtx, {
+          type: 'radar',
+          data: {
+            labels: ['Happy', 'Sad', 'Angry', 'Fearful'],
+            datasets: [{
+              label: 'Avg Confidence (%)',
+              data: [confs.Happy || 0, confs.Sad || 0, confs.Angry || 0, confs.Fearful || 0],
+              backgroundColor: 'rgba(99, 102, 241, 0.25)',
+              borderColor: '#6366F1',
+              pointBackgroundColor: '#6366F1',
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              r: {
+                min: 0,
+                max: 100,
+                grid: { color: colors.gridColor },
+                angleLines: { color: colors.gridColor },
+                pointLabels: { color: colors.textColor, font: { family: 'Inter', size: 12 } },
+                ticks: { color: colors.mutedColor, backdropColor: 'transparent', stepSize: 25 }
+              }
+            },
+            plugins: {
+              legend: { display: false }
+            }
+          }
+        });
+      }
+
+      // 3. Line Chart (Timeline)
+      const lineCtx = document.getElementById('chartLine');
+      if (lineCtx) {
+        if (chartLineInstance) chartLineInstance.destroy();
+        const timeline = data.timeline || [];
+        const labels = timeline.map(t => t.date);
+        const values = timeline.map(t => t.confidence);
+
+        chartLineInstance = new Chart(lineCtx, {
+          type: 'line',
+          data: {
+            labels: labels.length ? labels : ['No Scans Yet'],
+            datasets: [{
+              label: 'Confidence (%)',
+              data: values.length ? values : [0],
+              borderColor: '#10B981',
+              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+              borderWidth: 2.5,
+              fill: true,
+              tension: 0.35,
+              pointRadius: 4,
+              pointBackgroundColor: '#10B981'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                grid: { display: false },
+                ticks: { color: colors.mutedColor, font: { family: 'Inter', size: 11 } }
+              },
+              y: {
+                min: 0,
+                max: 100,
+                grid: { color: colors.gridColor },
+                ticks: { color: colors.mutedColor, font: { family: 'Inter', size: 11 } }
+              }
+            },
+            plugins: {
+              legend: { display: false }
+            }
+          }
+        });
+      }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', initCharts);
+window.addEventListener('catsense:theme-changed', initCharts);
+
+// Modal functions
+function openScanModal(item) {
+  const overlay = document.getElementById('scanModalOverlay');
+  const emotion = item.dataset.emotion;
+  const conf = item.dataset.confidence;
+  const time = item.dataset.time;
+  const probsRaw = item.dataset.probs;
+
+  const emojiMap = { 'Angry': '😾', 'Fearful': '🙀', 'Happy': '😸', 'Sad': '😿' };
+  document.getElementById('modalEmoji').textContent = emojiMap[emotion] || '🐾';
+  document.getElementById('modalEmotion').textContent = emotion;
+  document.getElementById('modalDate').textContent = time;
+  document.getElementById('modalConfBadge').textContent = conf + '% Confidence';
+
+  const probsList = document.getElementById('modalProbsList');
+  probsList.innerHTML = '';
+  try {
+    const probs = JSON.parse(probsRaw);
+    for (const [cls, val] of Object.entries(probs)) {
+      const pct = (val * 100).toFixed(1);
+      const row = document.createElement('div');
+      row.innerHTML = `
+        <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:600; margin-bottom:0.2rem;">
+          <span style="color:var(--text-primary);">${cls}</span>
+          <span style="color:var(--text-secondary);">${pct}%</span>
+        </div>
+        <div style="height:6px; background:var(--bg-glass-elevated); border-radius:9999px; overflow:hidden;">
+          <div style="height:100%; width:${pct}%; background:var(--accent-primary); border-radius:9999px;"></div>
+        </div>
+      `;
+      probsList.appendChild(row);
+    }
+  } catch (e) {}
+
+  overlay.style.display = 'flex';
+}
+
+function closeScanModal(e) {
+  if (e && e.target !== document.getElementById('scanModalOverlay') && !e.target.classList.contains('btn') && e.target.tagName !== 'BUTTON') {
+    return;
+  }
+  document.getElementById('scanModalOverlay').style.display = 'none';
+}
+</script>
+{% endblock %}
